@@ -7,7 +7,7 @@ begin
     valor1 := 20;
     valor2 := 10;
     if valor1 > valor2 then
-        valor3 := valor1;
+        valor3 := valor1 - valor2
     else
-        valor3 := valor2;
+        valor3 := valor2
 end.

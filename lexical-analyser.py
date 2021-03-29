@@ -14,6 +14,7 @@ class LexicalAnalyser:
         self.q5 = self._create_q5()
         self.q6 = self._create_q6()
         self.q7 = self._create_q7()
+        self.q8 = self._create_q8()
 
         self.current_state = self.q1
         self.stopped = False
@@ -56,6 +57,9 @@ class LexicalAnalyser:
 
         elif self.current_state == self.q7:
             print(self.buffer, '\t', 'relational operator', '\t', self.lines)
+        
+        elif self.current_state == self.q8:
+            print(self.buffer, '\t', 'additive operator', '\t', self.lines)
 
         self.buffer = ''
 
@@ -90,6 +94,10 @@ class LexicalAnalyser:
                 self.buffer += char
                 self.current_state = self.q7
 
+            elif char == '+' or char == '-':
+                self.buffer += char
+                self.current_state = self.q8
+            
             else:
                 break
     
@@ -111,6 +119,9 @@ class LexicalAnalyser:
             if char == '_' or char.isalpha() or char.isdigit():
                 self.buffer += char
                 self.current_state = self.q3
+            elif self.buffer == 'or':
+                self.current_state = self.q8
+                self.current_state.send(char)
             else:
                 self.does_match()
                 self.current_state = self.q1
@@ -176,7 +187,19 @@ class LexicalAnalyser:
                 self.does_match()
                 self.current_state = self.q1
                 self.current_state.send(char)
-                
+    
+    @prime
+    def _create_q8(self):
+        while True:
+            char = yield
+            if char == ' ' or char.isdigit() or char.isalpha():
+                self.does_match()
+                self.current_state = self.q1
+                self.current_state.send(char)
+            else:
+                self.buffer += char
+                self.stopped = True
+                self.does_match()
 
 def analyse(text):
     evaluator = LexicalAnalyser()
