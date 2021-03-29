@@ -13,6 +13,7 @@ class LexicalAnalyser:
         self.q4 = self._create_q4()
         self.q5 = self._create_q5()
         self.q6 = self._create_q6()
+        self.q7 = self._create_q7()
 
         self.current_state = self.q1
         self.stopped = False
@@ -32,6 +33,7 @@ class LexicalAnalyser:
 
     def does_match(self):
         if self.stopped:
+            print('Error at line', self.lines, ' - token not recognized: ', self.buffer)
             return False
 
         if self.current_state == self.q3:
@@ -52,8 +54,8 @@ class LexicalAnalyser:
             else:
                 print(self.buffer, '\t', 'delimiter', '\t', self.lines)
 
-        # elif self.buffer in self.delimiters:
-        #     print(self.buffer, '\t', 'delimiter', '\t', self.lines)
+        elif self.current_state == self.q7:
+            print(self.buffer, '\t', 'relational operator', '\t', self.lines)
 
         self.buffer = ''
 
@@ -84,6 +86,10 @@ class LexicalAnalyser:
                 self.buffer += char
                 self.current_state = self.q6
             
+            elif char == '=' or char == '<' or char == '>':
+                self.buffer += char
+                self.current_state = self.q7
+
             else:
                 break
     
@@ -151,6 +157,26 @@ class LexicalAnalyser:
                 self.does_match()
                 self.current_state = self.q1
                 self.current_state.send(char)
+    
+    @prime
+    def _create_q7(self):
+        # check if the input is a relational operator
+        while True:
+            char = yield
+            if char == '=' or char == '<' or char == '>':
+                if char != self.buffer and char != '<':
+                    self.buffer += char
+                    self.does_match()
+                    self.current_state = self.q1
+                else:
+                    self.buffer += char
+                    self.stopped = True
+                    self.does_match()
+            else:
+                self.does_match()
+                self.current_state = self.q1
+                self.current_state.send(char)
+                
 
 def analyse(text):
     evaluator = LexicalAnalyser()
