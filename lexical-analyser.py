@@ -47,11 +47,14 @@ class LexicalAnalyser:
             print(self.buffer, '\t', 'real number', '\t', self.lines)
         
         elif self.current_state == self.q6:
-            print(self.buffer, '\t', 'real number', '\t', self.lines)
+            if self.buffer == ':=':
+                print(self.buffer, '\t', 'assignment operator', '\t', self.lines)
+            else:
+                print(self.buffer, '\t', 'delimiter', '\t', self.lines)
 
-        elif self.buffer in self.delimiters:
-            print(self.buffer, '\t', 'delimiter', '\t', self.lines)
-        
+        # elif self.buffer in self.delimiters:
+        #     print(self.buffer, '\t', 'delimiter', '\t', self.lines)
+
         self.buffer = ''
 
     @prime
@@ -77,17 +80,9 @@ class LexicalAnalyser:
                 self.buffer += char
                 self.current_state = self.q4
             
-            # elif char == ':':
-            #     self.buffer += char
-            #     self.current_state = self.q6
-            
-            # elif char == '<' or char == '>':
-            #     self.buffer += char
-            #     self.current_state = self.q6
-            
-            # elif char in self.delimiters:
-            #     self.buffer += char
-            #     self.current_state = self.q6
+            elif char in self.delimiters:
+                self.buffer += char
+                self.current_state = self.q6
             
             else:
                 break
@@ -151,9 +146,7 @@ class LexicalAnalyser:
             char = yield
             if char == '=' and self.buffer == ':':
                 self.buffer += char
-                self.does_match()
-                self.current_state = self.q1
-                self.current_state.send(char)
+                self.current_state = self.q6
             else:
                 self.does_match()
                 self.current_state = self.q1
