@@ -1,0 +1,42 @@
+program keyword 1
+teste identifier 1
+; delimiter 1
+var keyword 2
+valor1 identifier 3
+: delimiter 3
+integer keyword 3
+; delimiter 3
+valor2 identifier 4
+: delimiter 4
+integer keyword 4
+; delimiter 4
+valor3 identifier 5
+: delimiter 5
+integer keyword 5
+; delimiter 5
+begin keyword 6
+valor1 identifier 7
+:= assignment operator 7
+20 integer number 7
+; delimiter 7
+valor2 identifier 8
+:= assignment operator 8
+10 integer number 8
+; delimiter 8
+if keyword 9
+valor1 identifier 9
+> relational operator 9
+valor2 identifier 9
+then keyword 9
+valor3 identifier 10
+:= assignment operator 10
+valor1 identifier 10
++ additive operator 10
+:= assignment operator 10
+valor2 identifier 10
+else keyword 11
+valor3 identifier 12
+:= assignment operator 12
+valor2 identifier 12
+end keyword 13
+. delimiter 13

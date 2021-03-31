@@ -27,6 +27,8 @@ class LexicalAnalyser:
         self.buffer = ''
         self.lines = 1
 
+        self.output = open('output.txt', 'x')
+
     def send(self, char):
         try:
             self.current_state.send(char)
@@ -40,30 +42,30 @@ class LexicalAnalyser:
 
         if self.current_state == self.q3:
             if self.buffer in self.keywords:
-                print(self.buffer, '\t', 'keyword', '\t', self.lines)
+                self.output.write(self.buffer + ' keyword ' + str(self.lines) + '\n')
             else:
-                print(self.buffer, '\t', 'identifier', '\t', self.lines)
+                self.output.write(self.buffer + ' identifier ' + str(self.lines) + '\n')
         
         elif self.current_state == self.q4:
-            print(self.buffer, '\t', 'integer number', '\t', self.lines)
+            self.output.write(self.buffer + ' integer number ' + str(self.lines) + '\n')
         
         elif self.current_state == self.q5:
-            print(self.buffer, '\t', 'real number', '\t', self.lines)
+            self.output.write(self.buffer + ' real number ' + str(self.lines) + '\n')
         
         elif self.current_state == self.q6:
             if self.buffer == ':=':
-                print(self.buffer, '\t', 'assignment operator', '\t', self.lines)
+                self.output.write(self.buffer + ' assignment operator ' + str(self.lines) + '\n')
             else:
-                print(self.buffer, '\t', 'delimiter', '\t', self.lines)
+                self.output.write(self.buffer + ' delimiter ' + str(self.lines) + '\n')
 
         elif self.current_state == self.q7:
-            print(self.buffer, '\t', 'relational operator', '\t', self.lines)
+            self.output.write(self.buffer + ' relational operator ' + str(self.lines) + '\n')
         
         elif self.current_state == self.q8:
-            print(self.buffer, '\t', 'additive operator', '\t', self.lines)
+            self.output.write(self.buffer + ' additive operator ' + str(self.lines) + '\n')
         
         elif self.current_state == self.q9:
-            print(self.buffer, '\t', 'multiplicative operator', '\t', self.lines)
+            self.output.write(self.buffer + ' multiplicative operator ' + str(self.lines) + '\n')
 
         self.buffer = ''
 
@@ -107,6 +109,7 @@ class LexicalAnalyser:
                 self.current_state = self.q9
 
             else:
+                self.output.close()
                 break
     
     @prime
