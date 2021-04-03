@@ -27,7 +27,7 @@ class LexicalAnalyser:
         self.buffer = ''
         self.lines = 1
 
-        self.output = open('output.txt', 'x')
+        self.output = open('output/output.txt', 'w')
 
     def send(self, char):
         try:
@@ -245,5 +245,5 @@ def analyse(text):
         evaluator.send(ch)
     return evaluator.does_match()
 
-program = open('program.txt', 'r')
+program = open('input/program.txt', 'r')
 analyse(program.read())
