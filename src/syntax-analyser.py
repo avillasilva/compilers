@@ -29,7 +29,7 @@ class SyntaxAnalyser:
                     self.next()
                     self.var_declarations()
                     self.subprograms_declarations()
-                    # self.compound_cmd()
+                    self.compound_cmd()
             
                     if self.buffer[0] == '.':
                         return
@@ -125,7 +125,7 @@ class SyntaxAnalyser:
                     self.next()
                     self.var_declarations()
                     self.subprograms_declarations()
-                    # self.compound_cmd()
+                    self.compound_cmd()
                 else:
                     self.error(self.buffer,';')
             else:
@@ -178,6 +178,7 @@ class SyntaxAnalyser:
                 self.error(self.buffer[0], 'end')
         else:
             self.error(self.buffer[0],'begin')
+        self.next()
 
     def optional_cmd(self):
         self.list_cmd1()        
@@ -191,12 +192,15 @@ class SyntaxAnalyser:
         if self.buffer[0] == ';':
             self.next()
             self.cmd()
+        else:
+            return
         self.list_cmd2()
 
     def cmd(self):
         if self.buffer[1] == 'identifier':
             self.next()
             if self.buffer[0] == ':=':
+                self.next()
                 self.expr()
             elif self.buffer[0] == '(':
                 self.procedure_activation()
@@ -222,6 +226,7 @@ class SyntaxAnalyser:
 
     def else_part(self):
         if self.buffer[0] == 'else':
+            self.next()
             self.cmd()
             
     def procedure_activation(self):
@@ -243,6 +248,87 @@ class SyntaxAnalyser:
             self.next()
             self.expr()
         self.list_expr2()
+
+    def expr(self):
+        self.simple_expr1()
+        if self.buffer[0] in [':=','<','>','<=','>=','<>']:
+            self.relational_op()
+            self.simple_expr1()
+    
+    def simple_expr1(self):
+        if self.buffer[1] in ['identifier','integer','real','boolean'] or self.buffer[0] in ['(','not']:
+            self.term1()
+        elif self.buffer[0] in ['+','-']:
+            self.next()
+            self.signal()
+            self.term1()
+        
+        self.simple_expr2()
+    
+    def simple_expr2(self):
+        if self.buffer[0] in ['+','-','or']:
+            self.next()
+            self.term1()
+            self.simple_expr2()
+
+    def term1(self):
+        if self.buffer[1] in ['identifier','integer','real','boolean']:
+            self.next()
+            self.factor()
+            if self.buffer[0] in ['*','/','and']:
+                self.term2()
+
+    def term2(self):
+        if self.buffer[0] in ['*','/','and']:
+            self.next()
+            self.factor()
+        self.term2()
+
+    def factor(self):
+        if self.buffer[1] == 'identifier':
+            self.next()
+            if self.buffer[0] == '(':
+                self.next()
+                self.list_expr1()
+                if self.buffer[0] != ')':
+                    self.error(self.buffer[0],')')
+            else: 
+                return self.next()
+        elif self.buffer[1] in ['integer','real','boolean']:
+            return self.next()
+        elif self.buffer[0] == '(':
+            self.next()
+            self.expr()
+            if self.buffer[0] != ')':
+                self.error(self.buffer[0],')')
+        elif self.buffer[0] == 'not':
+            self.next()
+            self.factor()
+    
+    def signal(self):
+        if self.buffer[0] in ['+','-']:
+            return self.next()
+        else:
+            self.error(self.buffer[0],'+ , -')
+    
+    def relational_op(self):
+        if self.buffer[0] in [':=','<','>','<=','>=','<>']:
+            return self.next()
+        else:
+            self.error(self.buffer[0],':=,<,>,<=,>=,<>')
+
+    def add_op(self):
+        if self.buffer[0] in ['+','-','or']:
+            return self.next()
+        else:
+            self.error(self.buffer[0],'+,-,or')
+
+    def mul_op(self):
+        if self.buffer[0] in ['*','/','and']:
+            return self.next()
+        else:
+            self.error(self.buffer[0],'*,/,and')
+
 
 
     
