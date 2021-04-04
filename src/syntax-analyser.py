@@ -82,12 +82,13 @@ class SyntaxAnalyser:
     def list_identifiers1(self):
         if self.buffer[1] == 'identifier':
             self.next()
-            return
+            if self.buffer[0] == ',':
+                self.list_identifiers2()
         else:
             self.error(self.buffer[1], 'identifier1')
-        self.list_identifiers2()
     
     def list_identifiers2(self):
+        
         if self.buffer[0] != '':
             if self.buffer[0] == ',':
                 self.next()
@@ -95,8 +96,9 @@ class SyntaxAnalyser:
                     self.next()
                 else:
                     self.error(self.buffer[0], 'identifier')
+                    return
             else:
-                return self.next()
+                return
         self.list_identifiers2()
 
             
@@ -134,7 +136,7 @@ class SyntaxAnalyser:
     def arguments(self):
         if self.buffer[0] == '(':
             self.next()
-            self.list_param()
+            self.list_param1()
             if self.buffer[0] == ')':
                 self.next()
             else:
@@ -142,11 +144,110 @@ class SyntaxAnalyser:
         else:
             return
 
-    def list_param(self):
+    def list_param1(self):
         self.list_identifiers1()
         if self.buffer[0] == ':':
             self.next()
-            self.type
+            self.type()
+            if self.buffer[0] == ';':
+                self.list_param2()
+            else:
+                return
+        else:
+            self.error(self.buffer[0], ':')
+        
+
+    def list_param2(self):
+        if self.buffer[0] == ';':
+            self.next()
+            self.list_identifiers1()
+            if self.buffer[0] == ':':
+                self.next()
+                self.type
+            else:
+                self.error(self.buffer[0], ':')
+        else:
+            return
+        self.list_param2()
+
+    def compound_cmd(self):
+        if self.buffer[0] == 'begin':
+            self.next()
+            self.optional_cmd()
+            if self.buffer[0] != 'end':
+                self.error(self.buffer[0], 'end')
+        else:
+            self.error(self.buffer[0],'begin')
+
+    def optional_cmd(self):
+        self.list_cmd1()        
+
+    def list_cmd1(self):
+        self.cmd()
+        if self.buffer[0] == ';':
+            self.list_cmd2()
+
+    def list_cmd2(self):
+        if self.buffer[0] == ';':
+            self.next()
+            self.cmd()
+        self.list_cmd2()
+
+    def cmd(self):
+        if self.buffer[1] == 'identifier':
+            self.next()
+            if self.buffer[0] == ':=':
+                self.expr()
+            elif self.buffer[0] == '(':
+                self.procedure_activation()
+        elif self.buffer[0] == 'begin':
+            self.compound_cmd()
+        elif self.buffer[0] == 'if':
+            self.next()
+            self.expr()
+            if self.buffer[0] == 'then':
+                self.next()
+                self.cmd()
+                self.else_part()
+            else:
+                self.error(self.buffer[0],'then')
+        elif self.buffer[0] == 'while':
+            self.next()
+            self.expr()
+            if self.buffer[0] == 'do':
+                self.next()
+                self.cmd()
+            else:
+                self.error(self.buffer[0],'do')
+
+    def else_part(self):
+        if self.buffer[0] == 'else':
+            self.cmd()
+            
+    def procedure_activation(self):
+        if self.buffer[0] == '(':
+            self.next()
+            self.list_expr()
+            if self.buffer[0] != ')':
+                self.error(self.buffer[0],')')
+            else:
+                self.next()
+
+    def list_expr1(self):
+        self.expr()
+        if self.buffer[0] == ',':
+            self.list_expr2()
+
+    def list_expr2(self):
+        if self.buffer[0] == ',':
+            self.next()
+            self.expr()
+        self.list_expr2()
+
+
+    
+
+        
 
 
     
