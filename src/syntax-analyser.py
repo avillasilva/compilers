@@ -251,7 +251,7 @@ class SyntaxAnalyser:
 
     def expr(self):
         self.simple_expr1()
-        if self.buffer[0] in [':=','<','>','<=','>=','<>']:
+        if self.buffer[0] in ['=','<','>','<=','>=','<>']:
             self.relational_op()
             self.simple_expr1()
     
@@ -282,6 +282,8 @@ class SyntaxAnalyser:
         if self.buffer[0] in ['*','/','and']:
             self.next()
             self.factor()
+        else:
+            return
         self.term2()
 
     def factor(self):
@@ -312,10 +314,10 @@ class SyntaxAnalyser:
             self.error(self.buffer[0],'+ , -')
     
     def relational_op(self):
-        if self.buffer[0] in [':=','<','>','<=','>=','<>']:
+        if self.buffer[0] in ['=','<','>','<=','>=','<>']:
             return self.next()
         else:
-            self.error(self.buffer[0],':=,<,>,<=,>=,<>')
+            self.error(self.buffer[0],'=,<,>,<=,>=,<>')
 
     def add_op(self):
         if self.buffer[0] in ['+','-','or']:
@@ -331,11 +333,5 @@ class SyntaxAnalyser:
 
 
 
-    
-
-        
-
-
-    
 sa = SyntaxAnalyser('output/output.txt')
 sa.analyse()

@@ -3,6 +3,8 @@ teste identifier 1
 ; delimiter 1
 var keyword 2
 valor1 identifier 3
+, delimiter 3
+valor4 identifier 3
 : delimiter 3
 integer keyword 3
 ; delimiter 3
@@ -31,8 +33,7 @@ then keyword 9
 valor3 identifier 10
 := assignment operator 10
 valor1 identifier 10
-+ additive operator 10
-:= assignment operator 10
+/ multiplicative operator 10
 valor2 identifier 10
 else keyword 11
 valor3 identifier 12
