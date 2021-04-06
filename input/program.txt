@@ -1,11 +1,14 @@
 program teste; {programa exemplo}
 var
-    valor1,valor4: integer;
-    valor2: integer;
-    valor3: integer;
+    valor1: integer;
+    valor2: real;
+    valor3: boolean;
 begin
     valor1 := 20;
-    valor2 := 10;
+    valor2 := 10.5;
+    
+    valor3 := true;
+    valor3 := false;
     if valor1 > valor2 then
         valor3 := valor1 / valor2
     else

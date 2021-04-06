@@ -6,7 +6,7 @@ def prime(fn):
     return wrapper
 
 class LexicalAnalyser:
-    def __init__(self):
+    def __init__(self, input):
         self.q1 = self._create_q1()
         self.q2 = self._create_q2()
         self.q3 = self._create_q3()
@@ -16,7 +16,9 @@ class LexicalAnalyser:
         self.q7 = self._create_q7()
         self.q8 = self._create_q8()
         self.q9 = self._create_q9()
-
+        self.q10 = self._create_10()
+        
+        self.reader = open(input, 'r')
         self.current_state = self.q1
         self.stopped = False
 
@@ -28,6 +30,15 @@ class LexicalAnalyser:
         self.lines = 1
 
         self.output = open('output/output.txt', 'w')
+    
+    def analyse(self):
+        while True:
+            char = self.reader.read(1)
+            self.send(char)
+            if not char:
+                self.send(None)
+                break
+        self.reader.close()
 
     def send(self, char):
         try:
@@ -37,7 +48,10 @@ class LexicalAnalyser:
 
     def does_match(self):
         if self.stopped:
-            print('Error at line', self.lines, ' - token not recognized: ', self.buffer)
+            if self.current_state == self.q2:
+                print('Missing comment delimiter: }')
+            else:
+                print('Error at line', self.lines, ' - token not recognized: ', self.buffer)
             return False
 
         if self.current_state == self.q3:
@@ -66,6 +80,9 @@ class LexicalAnalyser:
         
         elif self.current_state == self.q9:
             self.output.write(self.buffer + ' multiplicative operator ' + str(self.lines) + '\n')
+        
+        elif self.current_state == self.q10:
+            self.output.write(self.buffer + ' boolean ' + str(self.lines) + '\n')
 
         self.buffer = ''
 
@@ -119,6 +136,9 @@ class LexicalAnalyser:
             char = yield
             if char == '}':
                 self.current_state = self.q1
+            elif char == None:
+                self.stopped = True
+                self.does_match()
             else:
                 self.current_state = self.q2
     
@@ -130,21 +150,23 @@ class LexicalAnalyser:
             if char == '_' or char.isalpha() or char.isdigit():
                 self.buffer += char
                 self.current_state = self.q3
+            
             elif self.buffer == 'or':
                 self.current_state = self.q8
-                # self.does_match()
-                # self.current_state = self.q1
-                self.current_state.send(char)
+                self.send(char)
+            
             elif self.buffer == 'and':
                 self.current_state = self.q9
-                self.current_state.send(char)
-                # self.does_match()
-                # self.current_state = self.q1
-                # self.current_state.send(char)
+                self.send(char)
+            
+            elif self.buffer == 'true' or self.buffer == 'false':
+                self.current_state = self.q10
+                self.send(char)
+            
             else:
                 self.does_match()
                 self.current_state = self.q1
-                self.current_state.send(char)
+                self.send(char)
     
     @prime
     def _create_q4(self):
@@ -160,7 +182,7 @@ class LexicalAnalyser:
             else:
                 self.does_match()
                 self.current_state = self.q1
-                self.current_state.send(char)
+                self.send(char)
 
     @prime
     def _create_q5(self):
@@ -173,7 +195,7 @@ class LexicalAnalyser:
             else:
                 self.does_match()
                 self.current_state = self.q1
-                self.current_state.send(char)
+                self.send(char)
     
     @prime
     def _create_q6(self):
@@ -186,7 +208,7 @@ class LexicalAnalyser:
             else:
                 self.does_match()
                 self.current_state = self.q1
-                self.current_state.send(char)
+                self.send(char)
     
     @prime
     def _create_q7(self):
@@ -205,45 +227,34 @@ class LexicalAnalyser:
             else:
                 self.does_match()
                 self.current_state = self.q1
-                self.current_state.send(char)
+                self.send(char)
     
     @prime
     def _create_q8(self):
+        # Check if the input is an additive operator
         while True:
             char = yield
             self.does_match()
             self.current_state = self.q1
-            self.current_state.send(char)
-            # if char == ' ' or char.isdigit() or char.isalpha():
-            #     self.does_match()
-            #     self.current_state = self.q1
-            #     self.current_state.send(char)
-            # else:
-            #     self.buffer += char
-            #     self.stopped = True
-            #     self.does_match()
+            self.send(char)
     
     @prime
     def _create_q9(self):
+        # Check if the input is a multiplicative operator
         while True:
             char = yield
             self.does_match()
             self.current_state = self.q1
-            self.current_state.send(char)
-            # if char == ' ' or char.isdigit() or char.isalpha():
-            #     self.does_match()
-            #     self.current_state = self.q1
-            #     self.current_state.send(char)
-            # else:
-            #     self.buffer += char
-            #     self.stopped = True
-            #     self.does_match()
+            self.send(char)
+    
+    @prime
+    def _create_10(self):
+        # Check if the input is a boolean
+        while True:
+            char = yield
+            self.does_match()
+            self.current_state = self.q1
+            self.send(char)
 
-def analyse(text):
-    evaluator = LexicalAnalyser()
-    for ch in text:
-        evaluator.send(ch)
-    return evaluator.does_match()
-
-program = open('input/program.txt', 'r')
-analyse(program.read())
+analyser = LexicalAnalyser('input/program.txt')
+analyser.analyse()
