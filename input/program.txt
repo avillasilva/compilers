@@ -4,10 +4,10 @@ var
     valor2: integer;
     valor3: integer;
 begin
-    valor1 := 20;
+    valor1 := 20+10;
     valor2 := 10;
     if valor1 > valor2 then
-        valor3 := valor1 / valor2
+        valor3 := 10/20
     else
         valor3 := valor2
 end.

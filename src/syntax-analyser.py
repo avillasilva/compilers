@@ -273,7 +273,6 @@ class SyntaxAnalyser:
 
     def term1(self):
         if self.buffer[1] in ['identifier','integer','real','boolean']:
-            self.next()
             self.factor()
             if self.buffer[0] in ['*','/','and']:
                 self.term2()
@@ -295,7 +294,7 @@ class SyntaxAnalyser:
                 if self.buffer[0] != ')':
                     self.error(self.buffer[0],')')
             else: 
-                return self.next()
+                return
         elif self.buffer[1] in ['integer','real','boolean']:
             return self.next()
         elif self.buffer[0] == '(':

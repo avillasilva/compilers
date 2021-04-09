@@ -20,6 +20,8 @@ begin keyword 6
 valor1 identifier 7
 := assignment operator 7
 20 integer number 7
++ additive operator 7
+10 integer number 7
 ; delimiter 7
 valor2 identifier 8
 := assignment operator 8
@@ -32,9 +34,9 @@ valor2 identifier 9
 then keyword 9
 valor3 identifier 10
 := assignment operator 10
-valor1 identifier 10
+10 integer number 10
 / multiplicative operator 10
-valor2 identifier 10
+20 integer number 10
 else keyword 11
 valor3 identifier 12
 := assignment operator 12
