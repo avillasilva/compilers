@@ -39,6 +39,7 @@ class LexicalAnalyser:
                 self.send(None)
                 break
         self.reader.close()
+        self.output.close()
 
     def send(self, char):
         try:
@@ -61,25 +62,25 @@ class LexicalAnalyser:
                 self.output.write(self.buffer + ' identifier ' + str(self.lines) + '\n')
         
         elif self.current_state == self.q4:
-            self.output.write(self.buffer + ' integer number ' + str(self.lines) + '\n')
+            self.output.write(self.buffer + ' integer ' + str(self.lines) + '\n')
         
         elif self.current_state == self.q5:
-            self.output.write(self.buffer + ' real number ' + str(self.lines) + '\n')
+            self.output.write(self.buffer + ' real ' + str(self.lines) + '\n')
         
         elif self.current_state == self.q6:
             if self.buffer == ':=':
-                self.output.write(self.buffer + ' assignment operator ' + str(self.lines) + '\n')
+                self.output.write(self.buffer + ' assignment ' + str(self.lines) + '\n')
             else:
                 self.output.write(self.buffer + ' delimiter ' + str(self.lines) + '\n')
 
         elif self.current_state == self.q7:
-            self.output.write(self.buffer + ' relational operator ' + str(self.lines) + '\n')
+            self.output.write(self.buffer + ' relational ' + str(self.lines) + '\n')
         
         elif self.current_state == self.q8:
-            self.output.write(self.buffer + ' additive operator ' + str(self.lines) + '\n')
+            self.output.write(self.buffer + ' additive ' + str(self.lines) + '\n')
         
         elif self.current_state == self.q9:
-            self.output.write(self.buffer + ' multiplicative operator ' + str(self.lines) + '\n')
+            self.output.write(self.buffer + ' multiplicative ' + str(self.lines) + '\n')
         
         elif self.current_state == self.q10:
             self.output.write(self.buffer + ' boolean ' + str(self.lines) + '\n')
@@ -125,8 +126,13 @@ class LexicalAnalyser:
                 self.buffer += char
                 self.current_state = self.q9
 
+            elif not char:
+                break
+
             else:
-                self.output.close()
+                self.buffer += char
+                self.stopped = True
+                self.does_match()
                 break
     
     @prime

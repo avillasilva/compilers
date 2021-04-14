@@ -14,12 +14,11 @@ class SyntaxAnalyser:
         self.next()
         self.program()
 
-    def error(self, received, expected):
-        print('Error: received ' + received + ', ' + expected)
+    def error(self, received, expected, line):
+        print('Error: received ' + received + ', expected: ' + expected + ' in line: ' + line)
     
     def program(self):
         if self.buffer[0] == 'program':
-            print('leu: ' + self.buffer[0])
             self.next()
 
             if self.buffer[1] == 'identifier':
@@ -34,20 +33,20 @@ class SyntaxAnalyser:
                     if self.buffer[0] == '.':
                         return
                     else:    
-                        self.error(self.buffer[0], '.')
+                        self.error(self.buffer[0], '.', self.buffer[2])
                 else:
-                    self.error(self.buffer[0], ';')
+                    self.error(self.buffer[0], ';', self.buffer[2])
             else:
-                self.error(self.buffer[1], 'identifier')
+                self.error(self.buffer[1], 'identifier', self.buffer[2])
         else:
-            self.error(self.buffer[0], 'program declaration')
+            self.error(self.buffer[0], 'program declaration', self.buffer[2])
     
     def var_declarations(self):
         if self.buffer[0] == 'var':
             self.next()
             self.list_var_dec1()
         else:
-            self.error(self.buffer[0], 'var, procedure, compound command declaration')
+            self.error(self.buffer[0], 'var, procedure, compound command declaration', self.buffer[2])
     
     def list_var_dec1(self):
         self.list_identifiers1()
@@ -57,11 +56,12 @@ class SyntaxAnalyser:
             if self.buffer[0] == ';':
                 self.next()
             else:
-                self.error(self.buffer[0], ';')
+                self.error(self.buffer[0], ';', self.buffer[2])
         else:
-            self.error(self.buffer[0],':')
-            
-        self.list_var_dec2()
+            self.error(self.buffer[0],':', self.buffer[2])
+
+        if self.buffer[1] == 'identifier':    
+            self.list_var_dec2()
 
     def list_var_dec2(self):
         self.list_identifiers1()
@@ -71,9 +71,9 @@ class SyntaxAnalyser:
             if self.buffer[0] == ';':
                 self.next()
             else:
-                self.error(self.buffer[0], ';')
+                self.error(self.buffer[0], ';', self.buffer[2])
         else:
-            self.error(self.buffer[0],':')
+            self.error(self.buffer[0],':', self.buffer[2])
         if self.buffer[1] == 'identifier':
             self.list_var_dec2()
         else:
@@ -85,7 +85,7 @@ class SyntaxAnalyser:
             if self.buffer[0] == ',':
                 self.list_identifiers2()
         else:
-            self.error(self.buffer[1], 'identifier1')
+            self.error(self.buffer[2], 'identifier', self.buffer[2])
     
     def list_identifiers2(self):
         
@@ -95,7 +95,7 @@ class SyntaxAnalyser:
                 if self.buffer[1] == 'identifier':
                     self.next()
                 else:
-                    self.error(self.buffer[0], 'identifier')
+                    self.error(self.buffer[0], 'identifier', self.buffer[2])
                     return
             else:
                 return
@@ -106,7 +106,7 @@ class SyntaxAnalyser:
         if self.buffer[0] in ['integer', 'real', 'boolean']:
             return self.next()
         else:
-            self.error(self.buffer[0], 'integer, real or boolean')
+            self.error(self.buffer[0], 'integer, real or boolean', self.buffer[2])
     
     def subprograms_declarations(self):
         if self.buffer[0] == 'procedure':
@@ -127,9 +127,9 @@ class SyntaxAnalyser:
                     self.subprograms_declarations()
                     self.compound_cmd()
                 else:
-                    self.error(self.buffer,';')
+                    self.error(self.buffer,';', self.buffer[2])
             else:
-                self.error(self.buffer[1], 'identifier')
+                self.error(self.buffer[1], 'identifier', self.buffer[2])
         else:
             return
                 
@@ -140,7 +140,7 @@ class SyntaxAnalyser:
             if self.buffer[0] == ')':
                 self.next()
             else:
-                self.error(self.buffer[0], ')')
+                self.error(self.buffer[0], ')', self.buffer[2])
         else:
             return
 
@@ -154,7 +154,7 @@ class SyntaxAnalyser:
             else:
                 return
         else:
-            self.error(self.buffer[0], ':')
+            self.error(self.buffer[0], ':', self.buffer[2])
         
 
     def list_param2(self):
@@ -165,7 +165,7 @@ class SyntaxAnalyser:
                 self.next()
                 self.type
             else:
-                self.error(self.buffer[0], ':')
+                self.error(self.buffer[0], ':', self.buffer[2])
         else:
             return
         self.list_param2()
@@ -175,9 +175,9 @@ class SyntaxAnalyser:
             self.next()
             self.optional_cmd()
             if self.buffer[0] != 'end':
-                self.error(self.buffer[0], 'end')
+                self.error(self.buffer[0], 'end', self.buffer[2])
         else:
-            self.error(self.buffer[0],'begin')
+            self.error(self.buffer[0],'begin', self.buffer[2])
         self.next()
 
     def optional_cmd(self):
@@ -214,7 +214,7 @@ class SyntaxAnalyser:
                 self.cmd()
                 self.else_part()
             else:
-                self.error(self.buffer[0],'then')
+                self.error(self.buffer[0],'then', self.buffer[2])
         elif self.buffer[0] == 'while':
             self.next()
             self.expr()
@@ -222,7 +222,7 @@ class SyntaxAnalyser:
                 self.next()
                 self.cmd()
             else:
-                self.error(self.buffer[0],'do')
+                self.error(self.buffer[0],'do', self.buffer[2])
 
     def else_part(self):
         if self.buffer[0] == 'else':
@@ -234,7 +234,7 @@ class SyntaxAnalyser:
             self.next()
             self.list_expr()
             if self.buffer[0] != ')':
-                self.error(self.buffer[0],')')
+                self.error(self.buffer[0],')', self.buffer[2])
             else:
                 self.next()
 
@@ -292,7 +292,7 @@ class SyntaxAnalyser:
                 self.next()
                 self.list_expr1()
                 if self.buffer[0] != ')':
-                    self.error(self.buffer[0],')')
+                    self.error(self.buffer[0],')', self.buffer[2])
             else: 
                 return
         elif self.buffer[1] in ['integer','real','boolean']:
@@ -301,7 +301,7 @@ class SyntaxAnalyser:
             self.next()
             self.expr()
             if self.buffer[0] != ')':
-                self.error(self.buffer[0],')')
+                self.error(self.buffer[0],')', self.buffer[2])
         elif self.buffer[0] == 'not':
             self.next()
             self.factor()
@@ -310,25 +310,25 @@ class SyntaxAnalyser:
         if self.buffer[0] in ['+','-']:
             return self.next()
         else:
-            self.error(self.buffer[0],'+ , -')
+            self.error(self.buffer[0],'+ , -', self.buffer[2])
     
     def relational_op(self):
         if self.buffer[0] in ['=','<','>','<=','>=','<>']:
             return self.next()
         else:
-            self.error(self.buffer[0],'=,<,>,<=,>=,<>')
+            self.error(self.buffer[0],'=,<,>,<=,>=,<>', self.buffer[2])
 
     def add_op(self):
         if self.buffer[0] in ['+','-','or']:
             return self.next()
         else:
-            self.error(self.buffer[0],'+,-,or')
+            self.error(self.buffer[0],'+,-,or', self.buffer[2])
 
     def mul_op(self):
         if self.buffer[0] in ['*','/','and']:
             return self.next()
         else:
-            self.error(self.buffer[0],'*,/,and')
+            self.error(self.buffer[0],'*,/,and', self.buffer[2])
 
 
 

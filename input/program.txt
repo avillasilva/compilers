@@ -6,11 +6,11 @@ var
 begin
     valor1 := 20;
     valor2 := 10.5;
-    
+
     valor3 := true;
     valor3 := false;
     if valor1 > valor2 then
-        valor3 := 10/20
+        valor2 := valor1
     else
-        valor3 := valor2
+        valor1 := valor2;
 end.

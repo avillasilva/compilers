@@ -16,34 +16,33 @@ boolean keyword 5
 ; delimiter 5
 begin keyword 6
 valor1 identifier 7
-:= assignment operator 7
-20 integer number 7
+:= assignment 7
+20 integer 7
 ; delimiter 7
 valor2 identifier 8
-:= assignment operator 8
-10.5 real number 8
+:= assignment 8
+10.5 real 8
 ; delimiter 8
 valor3 identifier 10
-:= assignment operator 10
+:= assignment 10
 true boolean 10
 ; delimiter 10
 valor3 identifier 11
-:= assignment operator 11
+:= assignment 11
 false boolean 11
 ; delimiter 11
 if keyword 12
 valor1 identifier 12
-> relational operator 12
+> relational 12
 valor2 identifier 12
 then keyword 12
-valor3 identifier 13
-:= assignment operator 13
-10 integer number 13
-/ multiplicative operator 13
-20 integer number 13
+valor2 identifier 13
+:= assignment 13
+valor1 identifier 13
 else keyword 14
-valor3 identifier 15
-:= assignment operator 15
+valor1 identifier 15
+:= assignment 15
 valor2 identifier 15
+; delimiter 15
 end keyword 16
 . delimiter 16
