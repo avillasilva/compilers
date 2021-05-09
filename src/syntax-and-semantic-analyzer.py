@@ -30,17 +30,78 @@ class Stack :
     if(not self.containsInScope(token)) :
         self.push(token)
     else :
-        self.semanticError(token, 'is already declared', )
+        self.semanticError('is already declared', token )
 
-  def semanticError(self, received, message):
-    print('Error: ' + received + '  ' + message)
+  def fisrtOcurrence(self, token, tokenPile) :
+      counter = tokenPile.items.__len__()
+      for item in reversed(tokenPile.items) :
+          counter -= 1
+          if item == token:              
+              return counter
+
+  def declareType(self, type, tokenPile) :
+    x = tokenPile.items.__len__() - self.items.__len__()
+    while x > 0 :
+        self.push(type)
+        x -= 1
+
+  def checkAritmethic(self) :
+    logic_op = ['=','<','>','<=','>=','<>']
+    if self.items.__len__() > 2 :
+        top = self.pop()
+        op = self.pop()
+        subTop = self.pop()
+
+        if top == 'integer' and subTop == 'integer' and not op in logic_op :
+            self.push('integer')
+        elif top == 'integer' and subTop == 'integer' and op in logic_op :
+            self.push('boolean')
+        elif top == 'integer' and subTop == 'real' :
+            self.push('real')
+        elif top == 'real' and subTop == 'integer' :
+            self.push('real')
+        elif top == 'real' and subTop == 'real' :
+            self.push('real')
+        elif top == 'boolean' and subTop != 'boolean' :            
+            self.semanticError('invalid operation', top)
+            return
+        elif top != 'boolean' and subTop == 'boolean' :
+            self.semanticError(top, 'invalid operation')
+            return
+        elif top == 'boolean' and subTop == 'boolean' and op in logic_op :
+            self.semanticError('invalid operation with ', '',op)
+            self.pop()
+            return 
+        else :
+            self.semanticError(top, 'type error')
+        self.checkAritmethic()  
+    elif self.items.__len__() == 2 :
+        top = self.pop()
+        var = self.pop()
+
+        if top == 'real' and var == 'integer':
+            self.semanticError("can't store the given value ", var , top)
+        elif top == 'real' and var == 'boolean':
+            self.semanticError("can't store the given value ", var , top)
+        elif top == 'integer' and var == 'boolean':
+            self.semanticError("can't store the given value ", var , top)
+        elif top == 'boolean' and var == 'real':
+            self.semanticError("can't store the given value ", var , top)
+        elif top == 'boolean' and var == 'integer':
+            self.semanticError("can't store the given value ", var , top)
+
+
+  def semanticError(self, message, received = '', received2 = ''):
+    print('Error: ' + received + '  ' + message + received2)
 
 class SyntaxAndSemanticAnalyzer:
     def __init__(self, input):
         self.reader = open(input, 'r')
         self.index = 0
         self.buffer = None
-        self.pile = Stack()
+        self.tokenPile = Stack()
+        self.typePile = Stack()
+        self.currentOperation = Stack()
 
     def next(self):
         self.buffer = self.reader.readline().replace('\n', '').split()
@@ -58,11 +119,13 @@ class SyntaxAndSemanticAnalyzer:
     
     def program(self):
         if self.buffer[0] == 'program':
-            self.pile.push('$')
+            self.tokenPile.push('$')
+            self.typePile.push('$')
             self.next()
 
             if self.buffer[1] == 'identifier':
-                self.pile.checkDeclaration(self.buffer[0])
+                self.tokenPile.checkDeclaration(self.buffer[0])
+                self.typePile.push(self.buffer[1])
                 self.next()
             
                 if self.buffer[0] == ';':
@@ -70,8 +133,7 @@ class SyntaxAndSemanticAnalyzer:
                     self.var_declarations()
                     self.subprograms_declarations()
                     self.compound_cmd()
-            
-                    print(self.pile.items)  
+
                     if self.buffer[0] == '.':
                         return
                     else:    
@@ -123,7 +185,7 @@ class SyntaxAndSemanticAnalyzer:
         
     def list_identifiers1(self):
         if self.buffer[1] == 'identifier':
-            self.pile.checkDeclaration(self.buffer[0])
+            self.tokenPile.checkDeclaration(self.buffer[0])
             self.next()
             if self.buffer[0] == ',':
                 self.list_identifiers2()
@@ -136,7 +198,7 @@ class SyntaxAndSemanticAnalyzer:
             if self.buffer[0] == ',':
                 self.next()
                 if self.buffer[1] == 'identifier':
-                    self.pile.checkDeclaration(self.buffer[0])
+                    self.tokenPile.checkDeclaration(self.buffer[0])
                     self.next()
                 else:
                     self.error(self.buffer[0], 'identifier', self.buffer[2])
@@ -148,6 +210,7 @@ class SyntaxAndSemanticAnalyzer:
             
     def type(self):
         if self.buffer[0] in ['integer', 'real', 'boolean']:
+            self.typePile.declareType(self.buffer[0], self.tokenPile)
             return self.next()
         else:
             self.error(self.buffer[0], 'integer, real or boolean', self.buffer[2])
@@ -163,8 +226,9 @@ class SyntaxAndSemanticAnalyzer:
         if self.buffer[0] == 'procedure':            
             self.next()
             if self.buffer[1] == 'identifier':
-                self.pile.checkDeclaration(self.buffer[0])
-                self.pile.push('$')
+                self.tokenPile.checkDeclaration(self.buffer[0])
+                self.tokenPile.push('$')
+                self.typePile.push('$')
                 self.next()
                 self.arguments()
                 if self.buffer[0] == ';':
@@ -226,9 +290,10 @@ class SyntaxAndSemanticAnalyzer:
             self.optional_cmd()
             if self.buffer[0] != 'end':
                 self.error(self.buffer[0], 'end', self.buffer[2])
-            self.pile.changeScope()
+            self.tokenPile.changeScope()
+            self.typePile.changeScope()
         else:
-            self.error(self.buffer[0],'begin', self.buffer[2])        
+            self.error(self.buffer[0],'begin', self.buffer[2])                  
         self.next()
 
     def optional_cmd(self):
@@ -236,25 +301,30 @@ class SyntaxAndSemanticAnalyzer:
 
     def list_cmd1(self):
         self.cmd()
-        if self.buffer[0] == ';':
+        if self.buffer[0] == ';':            
             self.list_cmd2()
 
     def list_cmd2(self):
-        if self.buffer[0] == ';':
+        if self.buffer[0] == ';':            
             self.next()
+            self.currentOperation.checkAritmethic()
             self.cmd()
+            
+            
         else:
             return
         self.list_cmd2()
 
     def cmd(self):
-        if self.buffer[1] == 'identifier':
-            if not self.pile.containsInScope(self.buffer[0]) or not self.pile.contains(self.buffer[0]):
-                self.pile.semanticError(self.buffer[0], 'var not found')
+        if self.buffer[1] == 'identifier':         
+            if not self.tokenPile.contains(self.buffer[0]):
+                self.tokenPile.semanticError('var not found',self.buffer[0])
+            else :
+                self.currentOperation.push(self.typePile.items.__getitem__(self.tokenPile.fisrtOcurrence(self.buffer[0], self.tokenPile)))
             self.next()
             if self.buffer[0] == ':=':
                 self.next()
-                self.expr()
+                self.expr()                
             elif self.buffer[0] == '(':
                 self.procedure_activation()
         elif self.buffer[0] == 'begin':
@@ -320,6 +390,7 @@ class SyntaxAndSemanticAnalyzer:
     
     def simple_expr2(self):
         if self.buffer[0] in ['+','-','or']:
+            self.currentOperation.push(self.buffer[0])
             self.next()
             self.term1()
             self.simple_expr2()
@@ -332,6 +403,7 @@ class SyntaxAndSemanticAnalyzer:
 
     def term2(self):
         if self.buffer[0] in ['*','/','and']:
+            self.currentOperation.push(self.buffer[0])
             self.next()
             self.factor()
         else:
@@ -340,8 +412,10 @@ class SyntaxAndSemanticAnalyzer:
 
     def factor(self):
         if self.buffer[1] == 'identifier':
-            if not self.pile.containsInScope(self.buffer[0]) or not self.pile.contains(self.buffer[0]):
-                self.pile.semanticError(self.buffer[0], 'var not found')
+            if not self.tokenPile.contains(self.buffer[0]):
+                self.tokenPile.semanticError('var not found',self.buffer[0])
+            else:
+                self.currentOperation.push(self.typePile.items.__getitem__(self.tokenPile.fisrtOcurrence(self.buffer[0], self.tokenPile)))
             self.next()
             if self.buffer[0] == '(':
                 self.next()
@@ -351,6 +425,7 @@ class SyntaxAndSemanticAnalyzer:
             else: 
                 return
         elif self.buffer[1] in ['integer','real','boolean']:
+            self.currentOperation.push(self.buffer[1])
             return self.next()
         elif self.buffer[0] == '(':
             self.next()
@@ -363,12 +438,14 @@ class SyntaxAndSemanticAnalyzer:
     
     def signal(self):
         if self.buffer[0] in ['+','-']:
+            self.currentOperation.push(self.buffer[0])
             return self.next()
         else:
             self.error(self.buffer[0],'+ , -', self.buffer[2])
     
     def relational_op(self):
         if self.buffer[0] in ['=','<','>','<=','>=','<>']:
+            self.currentOperation.push(self.buffer[0])
             return self.next()
         else:
             self.error(self.buffer[0],'=,<,>,<=,>=,<>', self.buffer[2])

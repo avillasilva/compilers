@@ -1,20 +1,19 @@
 program teste; 
 var 
-    a,b : integer;
+    a : integer;
+    e,b : real;
+
     procedure p (x: integer);
     var 
         b,c: integer;
+        d : boolean;
     begin
-        b := c + y;
-    end;
-
-procedure p (x: integer);
-    var 
-        b,c: integer;
-    begin
-        b := c + y;
+        d :=  true < false;
+        b := e + c;
+        d := 5;
+        
     end;
     
 begin
-    d:= 10;
+    a:= 10;
 end.
