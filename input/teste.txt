@@ -1,0 +1,20 @@
+program teste; 
+var 
+    a,b : integer;
+    procedure p (x: integer);
+    var 
+        b,c: integer;
+    begin
+        b := c + y;
+    end;
+
+procedure p (x: integer);
+    var 
+        b,c: integer;
+    begin
+        b := c + y;
+    end;
+    
+begin
+    d:= 10;
+end.

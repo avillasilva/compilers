@@ -1,8 +1,46 @@
-class SyntaxAnalyser:
+class Stack :
+  def __init__(self) :
+    self.items = []
+
+  def push(self, item) :
+    self.items.append(item)
+
+  def pop(self) :
+    return self.items.pop()
+
+  def isEmpty(self) :
+    return (self.items == [])
+
+  def containsInScope(self, token) :
+      size = self.items.__len__()
+      for item in reversed(self.items) :
+            if item == '$' :
+              return False
+            elif item == token:
+                return True
+
+  def contains(self, token) :
+      return self.items.__contains__(token)
+
+  def changeScope(self) :
+      while(self.pop() != '$') :
+          continue
+
+  def checkDeclaration(self, token) :
+    if(not self.containsInScope(token)) :
+        self.push(token)
+    else :
+        self.semanticError(token, 'is already declared', )
+
+  def semanticError(self, received, message):
+    print('Error: ' + received + '  ' + message)
+
+class SyntaxAndSemanticAnalyzer:
     def __init__(self, input):
         self.reader = open(input, 'r')
         self.index = 0
         self.buffer = None
+        self.pile = Stack()
 
     def next(self):
         self.buffer = self.reader.readline().replace('\n', '').split()
@@ -17,11 +55,14 @@ class SyntaxAnalyser:
     def error(self, received, expected, line):
         print('Error: received ' + received + ', expected: ' + expected + ' in line: ' + line)
     
+    
     def program(self):
         if self.buffer[0] == 'program':
+            self.pile.push('$')
             self.next()
 
             if self.buffer[1] == 'identifier':
+                self.pile.checkDeclaration(self.buffer[0])
                 self.next()
             
                 if self.buffer[0] == ';':
@@ -30,10 +71,11 @@ class SyntaxAnalyser:
                     self.subprograms_declarations()
                     self.compound_cmd()
             
+                    print(self.pile.items)  
                     if self.buffer[0] == '.':
                         return
                     else:    
-                        self.error(self.buffer[0], '.', self.buffer[2])
+                        self.error(self.buffer[0], '.', self.buffer[2])                  
                 else:
                     self.error(self.buffer[0], ';', self.buffer[2])
             else:
@@ -81,6 +123,7 @@ class SyntaxAnalyser:
         
     def list_identifiers1(self):
         if self.buffer[1] == 'identifier':
+            self.pile.checkDeclaration(self.buffer[0])
             self.next()
             if self.buffer[0] == ',':
                 self.list_identifiers2()
@@ -93,6 +136,7 @@ class SyntaxAnalyser:
             if self.buffer[0] == ',':
                 self.next()
                 if self.buffer[1] == 'identifier':
+                    self.pile.checkDeclaration(self.buffer[0])
                     self.next()
                 else:
                     self.error(self.buffer[0], 'identifier', self.buffer[2])
@@ -109,16 +153,18 @@ class SyntaxAnalyser:
             self.error(self.buffer[0], 'integer, real or boolean', self.buffer[2])
     
     def subprograms_declarations(self):
-        if self.buffer[0] == 'procedure':
+        if self.buffer[0] == 'procedure':            
             self.subprog_declaration()
         else:
             return
 
 
     def subprog_declaration(self):
-        if self.buffer[0] == 'procedure':
+        if self.buffer[0] == 'procedure':            
             self.next()
             if self.buffer[1] == 'identifier':
+                self.pile.checkDeclaration(self.buffer[0])
+                self.pile.push('$')
                 self.next()
                 self.arguments()
                 if self.buffer[0] == ';':
@@ -126,13 +172,17 @@ class SyntaxAnalyser:
                     self.var_declarations()
                     self.subprograms_declarations()
                     self.compound_cmd()
+                    if self.buffer[0] != ';':
+                        self.error(self.buffer[0], ';', self.buffer[2])
+                    self.next()                                   
                 else:
                     self.error(self.buffer,';', self.buffer[2])
             else:
-                self.error(self.buffer[1], 'identifier', self.buffer[2])
-        else:
-            return
-                
+                self.error(self.buffer[1], 'identifier', self.buffer[2]) 
+            self.subprog_declaration()           
+        else:            
+            return        
+                        
     def arguments(self):
         if self.buffer[0] == '(':
             self.next()
@@ -176,8 +226,9 @@ class SyntaxAnalyser:
             self.optional_cmd()
             if self.buffer[0] != 'end':
                 self.error(self.buffer[0], 'end', self.buffer[2])
+            self.pile.changeScope()
         else:
-            self.error(self.buffer[0],'begin', self.buffer[2])
+            self.error(self.buffer[0],'begin', self.buffer[2])        
         self.next()
 
     def optional_cmd(self):
@@ -198,6 +249,8 @@ class SyntaxAnalyser:
 
     def cmd(self):
         if self.buffer[1] == 'identifier':
+            if not self.pile.containsInScope(self.buffer[0]) or not self.pile.contains(self.buffer[0]):
+                self.pile.semanticError(self.buffer[0], 'var not found')
             self.next()
             if self.buffer[0] == ':=':
                 self.next()
@@ -232,7 +285,7 @@ class SyntaxAnalyser:
     def procedure_activation(self):
         if self.buffer[0] == '(':
             self.next()
-            self.list_expr()
+            self.list_expr1()
             if self.buffer[0] != ')':
                 self.error(self.buffer[0],')', self.buffer[2])
             else:
@@ -287,6 +340,8 @@ class SyntaxAnalyser:
 
     def factor(self):
         if self.buffer[1] == 'identifier':
+            if not self.pile.containsInScope(self.buffer[0]) or not self.pile.contains(self.buffer[0]):
+                self.pile.semanticError(self.buffer[0], 'var not found')
             self.next()
             if self.buffer[0] == '(':
                 self.next()
@@ -332,5 +387,5 @@ class SyntaxAnalyser:
 
 
 
-sa = SyntaxAnalyser('output/output.txt')
+sa = SyntaxAndSemanticAnalyzer('output/output.txt')
 sa.analyse()

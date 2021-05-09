@@ -5,7 +5,7 @@ def prime(fn):
         return v
     return wrapper
 
-class LexicalAnalyser:
+class LexicalAnalyzer:
     def __init__(self, input):
         self.q1 = self._create_q1()
         self.q2 = self._create_q2()
@@ -262,5 +262,5 @@ class LexicalAnalyser:
             self.current_state = self.q1
             self.send(char)
 
-analyser = LexicalAnalyser('input/program.txt')
+analyser = LexicalAnalyzer('input/teste.txt')
 analyser.analyse()
